@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Business Contacts</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Business Contacts</h1>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Add Contact</h3>
+                <form id="addContactForm" method="POST">
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" class="form-control" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" class="form-control" id="lastName" name="lastName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mobileNumber">Mobile Number *</label>
+                        <input type="text" class="form-control" id="mobileNumber" name="mobileNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="postcode">Postcode</label>
+                        <input type="text" class="form-control" id="postcode" name="postcode">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h3>Contacts Listing</h3>
+                <input type="text" class="form-control" id="searchInput" placeholder="Search">
+                <table id="contactsTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Mobile Number</th>
+                            <th>Email Address</th>
+                            <th>Postcode</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            loadContacts();
+
+            // Submitting the add contact form
+            $("#addContactForm").submit(function (event) {
+                event.preventDefault();
+
+                var firstName = $("#firstName").val();
+                var lastName = $("#lastName").val();
+                var mobileNumber = $("#mobileNumber").val();
+                var email = $("#email").val();
+                var postcode = $("#postcode").val();
+
+                var contact = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    mobileNumber: mobileNumber,
+                    email: email,
+                    postcode: postcode
+                };
+
+                $.ajax({
+                    url: "save_contact.php", // PHP file to handle saving the contact
+                    type: "POST",
+                    data: contact,
+                    success: function (response) {
+                        console.log(response);
+                        loadContacts();
+                        $("#addContactForm")[0].reset();
+                    }
+                });
+            });
+
+            // Filtering the contacts based on search input
+            $("#searchInput").on("keyup", function () {
+                var searchText = $(this).val().toLowerCase();
+
+                $("#contactsBody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(searchText) > -1);
+                });
+            });
+
+            // Loading contacts from the server
+            function loadContacts() {
+                $.ajax({
+                    url: "get_contacts.php", // PHP file to retrieve contacts
+                    type: "GET",
+                    dataType: "json",
+                    success: function (contacts) {
+                        //console.log(contacts);
+                        var contactsBody = $("#contactsBody");
+                        contactsBody.empty();
+
+                        $.each(contacts, function (index, contact) {
+                            var row = $("<tr></tr>");
+
+                            $("<td></td>").text(contact.first_name).appendTo(row);
+                            $("<td></td>").text(contact.last_name).appendTo(row);
+                            $("<td></td>").text(contact.mobile).appendTo(row);
+                            $("<td></td>").text(contact.email).appendTo(row);
+                            $("<td></td>").text(contact.postcode).appendTo(row);
+
+                            var actions = $("<td></td>");
+                            var editBtn = $("<button>Edit</button>").addClass("btn btn-primary btn-sm");
+                            var deleteBtn = $("<button>Delete</button>").addClass("btn btn-danger btn-sm");
+
+                            editBtn.click(function () {
+                                // Handle edit functionality
+                            });
+
+                            deleteBtn.click(function () {
+                                // Handle delete functionality
+                            });
+
+                            actions.append(editBtn).append(" ").append(deleteBtn);
+                            actions.appendTo(row);
+
+                            row.appendTo(contactsBody);
+                        });
+                    }
+                });
+            }
+
+            // Call loadContacts initially to populate the table
+            loadContacts();
+        });
+    </script>
+</body>
+</html>
+
